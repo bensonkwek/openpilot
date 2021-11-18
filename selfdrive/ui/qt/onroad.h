@@ -35,6 +35,22 @@ public slots:
   void updateState(const UIState &s);
 };
 
+class OnroadScreenOff : public AbstractControl {
+  Q_OBJECT
+
+public:
+  OnroadScreenOff();
+
+private:
+  QPushButton btnplus;
+  QPushButton btnminus;
+  QLabel label;
+  Params params;
+
+  void refresh();
+};
+
+
 class OnroadHud : public QWidget {
   Q_OBJECT
   Q_PROPERTY(QString speed MEMBER speed NOTIFY valueChanged);
