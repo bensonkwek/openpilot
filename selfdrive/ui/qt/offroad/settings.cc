@@ -344,6 +344,17 @@ void SettingsWindow::showEvent(QShowEvent *event) {
   nav_btns->buttons()[0]->setChecked(true);
 }
 
+FeaturePanel::FeaturePanel(QWidget* parent) : QWidget(parent) {
+  QVBoxLayout *layout = new QVBoxLayout(this);
+
+  layout->setContentsMargins(50, 0, 50, 0);
+  layout->setSpacing(30);
+
+  layout->addWidget(new MaxTimeOffroad());
+  layout->addWidget(new OnroadScreenOff());
+  layout->addWidget(new AutoLaneChangeTimer());
+}
+
 SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   // setup two main layouts

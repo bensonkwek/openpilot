@@ -205,8 +205,28 @@ static void update_state(UIState *s) {
   scene.started = sm["deviceState"].getDeviceState().getStarted() && scene.ignition;
 }
 
-void ui_update_params(UIState *s) {
-  s->scene.is_metric = Params().getBool("IsMetric");
+static void update_params(UIState *s) {
+  const uint64_t frame = s->sm->frame;
+  UIScene &scene = s->scene;
+  Params params;
+  if (frame % (5*UI_FREQ) == 0) {
+    scene.is_metric = Params().getBool("IsMetric");
+  }
+
+  if (!scene.read_params) {
+    scene.onroadScreenOff = std::stoi(params.get("OnroadScreenOff"));
+
+    if (scene.onroadScreenOff > 0) {
+      scene.osoTimer = scene.onroadScreenOff * 60 * UI_FREQ;
+    } else if (scene.onroadScreenOff == 0) {
+      scene.osoTimer = 30 * UI_FREQ;
+    } else if (scene.onroadScreenOff == -1) {
+      scene.osoTimer = 15 * UI_FREQ;
+    } else {
+      scene.osoTimer = -1;
+    }
+
+  }
 }
 
 static void update_status(UIState *s) {
@@ -306,25 +326,36 @@ void Device::resetInteractiveTimout() {
 }
 
 void Device::updateBrightness(const UIState &s) {
-  float clipped_brightness = BACKLIGHT_OFFROAD;
-  if (s.scene.started) {
-    // Scale to 0% to 100%
-    clipped_brightness = 100.0 * s.scene.light_sensor;
+  // Scale to 0% to 100%
+  float clipped_brightness = 100.0 * s.scene.light_sensor;
+  // CIE 1931 - https://www.photonstophotos.net/GeneralTopics/Exposure/Psychometric_Lightness_and_Gamma.htm
+  if (clipped_brightness <= 8) {
+    clipped_brightness = (clipped_brightness / 903.3);
+  } else {
+    clipped_brightness = std::pow((clipped_brightness + 16.0) / 116.0, 3.0);
+  }
+  // Scale back to 10% to 100%
+  clipped_brightness = std::clamp(100.0f * clipped_brightness, 10.0f, 100.0f);
 
-    // CIE 1931 - https://www.photonstophotos.net/GeneralTopics/Exposure/Psychometric_Lightness_and_Gamma.htm
-    if (clipped_brightness <= 8) {
-      clipped_brightness = (clipped_brightness / 903.3);
-    } else {
-      clipped_brightness = std::pow((clipped_brightness + 16.0) / 116.0, 3.0);
-    }
-
-    // Scale back to 10% to 100%
-    clipped_brightness = std::clamp(100.0f * clipped_brightness, 10.0f, 100.0f);
+  if (!s.scene.started) {
+    clipped_brightness = BACKLIGHT_OFFROAD;
+  } else if (s.scene.onroadScreenOff != -2 && s.scene.touched2) {
+    sleep_time = s.scene.osoTimer;
+  } else if (s.scene.controls_state.getAlertSize() != cereal::ControlsState::AlertSize::NONE && s.scene.onroadScreenOff != -2) {
+    sleep_time = s.scene.osoTimer;
+  } else if (sleep_time > 0 && s.scene.onroadScreenOff != -2) {
+    sleep_time--;
+  } else if (s.scene.started && sleep_time == -1 && s.scene.onroadScreenOff != -2) {
+    sleep_time = s.scene.osoTimer;
   }
 
   int brightness = brightness_filter.update(clipped_brightness);
   if (!awake) {
     brightness = 0;
+  } else if (s.scene.started && sleep_time == 0 && s.scene.onroadScreenOff != -2) {
+    brightness = s.scene.brightness_off * 0.01 * brightness;
+  } else if( s.scene.brightness ) {
+    brightness = s.scene.brightness * 0.99;
   }
 
   if (brightness != last_brightness) {
