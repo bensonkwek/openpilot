@@ -53,6 +53,18 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/offroad/icon_metric.png",
     },
     {
+      "UploadRaw",
+      tr("Upload Raw Logs"),
+      tr("Upload full logs and full resolution video by default while on Wi-Fi. If not enabled, individual logs can be marked for upload at useradmin.comma.ai."),
+      "../assets/offroad/icon_network.png",
+    },
+    {
+      "SpeedIncrement",
+      "Enable +5 Speed Increments",
+      "Enable +5 speed increments when tapping on the +/- speed change buttons",
+      "../assets/offroad/icon_road.png",
+    },
+    {
       "RecordFront",
       tr("Record and Upload Driver Camera"),
       tr("Upload data from the driver facing camera and help improve the driver monitoring algorithm."),
