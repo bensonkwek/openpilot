@@ -38,7 +38,7 @@ class CarState(CarStateBase):
       self.pm = messaging.PubMaster(['dynamicFollowButton'])
 
     # Toyota 5/5 Speed Increments
-    self._5in5_Speeds_Increments = op_params.get('toyota_5/5_speed_increments')
+    self._5in5_Speeds_Increments = op_params.get('toyota_5in5_speed_increments')
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
