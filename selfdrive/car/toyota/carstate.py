@@ -7,7 +7,7 @@ from opendbc.can.can_define import CANDefine
 from opendbc.can.parser import CANParser
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.toyota.values import ToyotaFlags, CAR, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR, RADAR_ACC_CAR, EPS_SCALE
-
+from common.params import Params
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -27,6 +27,10 @@ class CarState(CarStateBase):
 
     # KRKeegan - Add support for toyota distance button
     self.distance_btn = 0
+
+    # Toyota 5/5 Speed Increments
+    params = Params()
+    self.allow_raw_upload = params.get_bool("SpeedIncrement")
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -107,6 +111,11 @@ class CarState(CarStateBase):
       # KRKeegan - Add support for toyota distance button
       self.distance_btn = 1 if cp_cam.vl["ACC_CONTROL"]["DISTANCE"] == 1 else 0
       ret.distanceLines = cp.vl["PCM_CRUISE_SM"]["DISTANCE_LINES"]
+
+    if self._5in5_Speeds_Increments:
+      self.Fast_Speed_Increments = 2
+    else:
+      self.Fast_Speed_Increments = 1
 
     # some TSS2 cars have low speed lockout permanently set, so ignore on those cars
     # these cars are identified by an ACC_TYPE value of 2.

@@ -58,6 +58,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/offroad/icon_network.png",
     },
     {
+      "SpeedIncrement",
+      "Enable +5 Speed Increments",
+      "Enable +5 speed increments when tapping on the +/- speed change buttons",
+      "../assets/offroad/icon_road.png",
+    },
+    {
       "RecordFront",
       "Record and Upload Driver Camera",
       "Upload data from the driver facing camera and help improve the driver monitoring algorithm.",
