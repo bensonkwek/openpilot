@@ -37,6 +37,9 @@ class CarState(CarStateBase):
       # Previously was publishing from UI
       self.pm = messaging.PubMaster(['dynamicFollowButton'])
 
+    # Toyota 5/5 Speed Increments
+    self._5in5_Speeds_Increments = op_params.get('toyota_5/5_speed_increments')
+
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
@@ -121,6 +124,11 @@ class CarState(CarStateBase):
         dat.dynamicFollowButton.status = distance_lines
         self.pm.send('dynamicFollowButton', dat)
         self.distance_lines = distance_lines
+    
+    if self._5in5_Speeds_Increments:
+      self.Fast_Speed_Increments = 2
+    else:
+      self.Fast_Speed_Increments = 1
 
     # some TSS2 cars have low speed lockout permanently set, so ignore on those cars
     # these cars are identified by an ACC_TYPE value of 2.

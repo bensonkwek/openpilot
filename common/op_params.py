@@ -136,6 +136,7 @@ class opParams:
 
       'dynamic_follow': Param('stock', str, static=True, hidden=True),
       'lane_speed_alerts': Param('silent', str, static=True, hidden=True),
+      'toyota_5/5_speed_increments': Param(False, bool, 'Set to False to disable change always 5unit set speed on every push on the button', static=True)
     }
 
     self._to_delete = []  # a list of unused params you want to delete from users' params file
