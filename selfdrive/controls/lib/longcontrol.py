@@ -89,7 +89,12 @@ class LongControl():
     a_target = clip(a_target, ACCEL_MIN_ISO, ACCEL_MAX_ISO)
 
     self.pid.neg_limit = accel_limits[0]
-    self.pid.pos_limit = accel_limits[1]
+    if CS.sportOn:
+      self.pid.pos_limit = accel_limits[1]  # maximum accel
+    elif CS.econOn:
+      self.pid.pos_limit = 1.2
+    else:
+      self.pid.pos_limit = 1.5
 
     # if self.op_params.get('dynamic_gas'):
     #   gas_max = self.dynamic_gas.update(CS, extras)
