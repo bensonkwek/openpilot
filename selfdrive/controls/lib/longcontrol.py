@@ -87,13 +87,14 @@ class LongControl():
 
     # TODO: This check is not complete and needs to be enforced by MPC
     a_target = clip(a_target, ACCEL_MIN_ISO, ACCEL_MAX_ISO)
+
     self.pid.neg_limit = accel_limits[0]
     if CS.sportOn:
       pass  # already max accel from CarControllerParams
     elif CS.econOn:
-      accel_limits[1] = 1.2
+      accel_limits[1] = 1.3
     else:
-      accel_limits[1] = 1.5
+      accel_limits[1] = 1.6
     self.pid.pos_limit = accel_limits[1]
 
     # if self.op_params.get('dynamic_gas'):
