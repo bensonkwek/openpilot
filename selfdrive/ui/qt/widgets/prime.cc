@@ -161,7 +161,7 @@ PrimeUserWidget::PrimeUserWidget(QWidget* parent) : QWidget(parent) {
   thirdLayout->setMargin(0);
   thirdWidget->setContentsMargins(60, 50, 60, 50);
 
-  QLabel* thirdLabel = new QLabel("Stock...with Additions!");
+  QLabel* thirdLabel = new QLabel("Welcome to 大白!");
   thirdLabel->setStyleSheet("font-size: 41px; font-family: Inter SemiBold;");
   thirdLayout->addWidget(thirdLabel, 0, Qt::AlignVCenter);
 
