@@ -9,3 +9,7 @@ Built on top of Shane's Stock Additions, with additional customizations to inter
 
 ## References
 [Shane's Fork](https://github.com/sshane/openpilot)
+
+<p align="center">
+  <img src=".media/sg_flag.png?raw=true">
+</p>
