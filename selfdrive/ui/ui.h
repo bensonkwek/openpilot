@@ -93,8 +93,6 @@ typedef struct UIScene {
   mat3 view_from_calib;
   cereal::PandaState::PandaType pandaType;
 
-  int laneless_mode;
-  Rect laneless_btn_touch_rect;
   bool read_params = false;
   int onroadScreenOff, osoTimer, brightness, brightness_off, awake;
   bool touched2 = false;
