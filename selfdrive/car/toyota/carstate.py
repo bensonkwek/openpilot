@@ -8,7 +8,7 @@ from opendbc.can.can_define import CANDefine
 from selfdrive.car.interfaces import CarStateBase
 from opendbc.can.parser import CANParser
 from selfdrive.config import Conversions as CV
-from selfdrive.car.toyota.values import CAR, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR
+from selfdrive.car.toyota.values import CAR, DBC, STEER_THRESHOLD, NO_STOP_TIMER_CAR, TSS2_CAR, SPORT_ECO_CAR
 
 
 class CarState(CarStateBase):
@@ -36,6 +36,9 @@ class CarState(CarStateBase):
     if self.enable_distance_btn:
       # Previously was publishing from UI
       self.pm = messaging.PubMaster(['dynamicFollowButton'])
+
+    # Toyota 5/5 Speed Increments
+    self._5in5_Speeds_Increments = op_params.get('toyota_5in5_speed_increments')
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -87,6 +90,9 @@ class CarState(CarStateBase):
 
     can_gear = int(cp.vl["GEAR_PACKET"]["GEAR"])
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    if self.CP.carFingerprint in SPORT_ECO_CAR:
+      ret.sportOn = bool(cp.vl["GEAR_PACKET"]["SPORT_ON"])
+      ret.econOn = bool(cp.vl["GEAR_PACKET"]["ECON_ON"])
     ret.leftBlinker = cp.vl["STEERING_LEVERS"]["TURN_SIGNALS"] == 1
     ret.rightBlinker = cp.vl["STEERING_LEVERS"]["TURN_SIGNALS"] == 2
 
@@ -118,6 +124,11 @@ class CarState(CarStateBase):
         dat.dynamicFollowButton.status = distance_lines
         self.pm.send('dynamicFollowButton', dat)
         self.distance_lines = distance_lines
+    
+    if self._5in5_Speeds_Increments:
+      self.Fast_Speed_Increments = 2
+    else:
+      self.Fast_Speed_Increments = 1
 
     # some TSS2 cars have low speed lockout permanently set, so ignore on those cars
     # these cars are identified by an ACC_TYPE value of 2.
@@ -234,6 +245,12 @@ class CarState(CarStateBase):
     if CP.smartDsu:
       signals.append(("FD_BUTTON", "SDSU", 0))
       checks.append(("SDSU", 33))
+
+    if CP.carFingerprint in SPORT_ECO_CAR:
+      signals += [
+        ("SPORT_ON", "GEAR_PACKET", 0),
+        ("ECON_ON", "GEAR_PACKET", 0),
+      ]
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
 
