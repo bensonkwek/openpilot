@@ -14,6 +14,7 @@ Built on top of Shane's Stock Additions, with additional customizations to inter
 * [Shane](https://github.com/sshane/openpilot)
 * [Erich](https://github.com/ErichMoraga/openpilot.git)
 * [KrKeegan](https://github.com/krkeegan/openpilot)
+* [AlexandroSato](https://github.com/AlexandreSato/openpilot)
 
 <p align="center">
   <img src=".media/sg_flag.png" style="object-fit:fill;
