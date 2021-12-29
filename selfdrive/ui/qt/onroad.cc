@@ -284,6 +284,8 @@ void OnroadHud::updateState(const UIState &s) {
     maxspeed *= KM_TO_MILE;
   }
   QString maxspeed_str = cruise_set ? QString::number(std::nearbyint(maxspeed)) : "N/A";
+  // Turn speed red when brake is active
+  setProperty('is_brake_active', sm["carState"].getCarState().getBrakeLightsDEPRECATED());
   float cur_speed = std::max(0.0, sm["carState"].getCarState().getVEgo() * (s.scene.is_metric ? MS_TO_KPH : MS_TO_MPH));
 
   setProperty("is_cruise_set", cruise_set);
@@ -329,10 +331,13 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
 
   // current speed
   configFont(p, "Open Sans", 176, "Bold");
-  drawText(p, rect().center().x(), 210, speed);
+  if (is_brake_active)
+    myDrawText(p, rect().center().x(), 210, speed); // turn speed red when brake is active
+  else
+    drawText(p, rect().center().x(), 210, speedUnit, 200);
   configFont(p, "Open Sans", 66, "Regular");
   drawText(p, rect().center().x(), 290, speedUnit, 200);
-
+  
   // engage-ability icon
   if (engageable) {
     drawIcon(p, rect().right() - radius / 2 - bdr_s * 2, radius / 2 + int(bdr_s * 1.5),
@@ -353,6 +358,16 @@ void OnroadHud::drawText(QPainter &p, int x, int y, const QString &text, int alp
   real_rect.moveCenter({x, y - real_rect.height() / 2});
 
   p.setPen(QColor(0xff, 0xff, 0xff, alpha));
+  p.drawText(real_rect.x(), real_rect.bottom(), text);
+}
+
+void OnroadHud::myDrawText(QPainter &p, int x, int y, const QString &text, int alpha) {
+  QFontMetrics fm(p.font());
+  QRect init_rect = fm.boundingRect(text);
+  QRect real_rect = fm.boundingRect(init_rect, 0, text);
+  real_rect.moveCenter({x, y - real_rect.height() / 2});
+
+  p.setPen(QColor(0xff, 0, 0x00, alpha));
   p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 
