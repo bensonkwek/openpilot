@@ -367,7 +367,7 @@ void OnroadHud::myDrawText(QPainter &p, int x, int y, const QString &text, int a
   QRect real_rect = fm.boundingRect(init_rect, 0, text);
   real_rect.moveCenter({x, y - real_rect.height() / 2});
 
-  p.setPen(QColor(0xff, 0, 0x00, alpha));
+  p.setPen(QColor(0xff, 0x00, 0x00, alpha));
   p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 
