@@ -333,8 +333,6 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
   configFont(p, "Open Sans", 176, "Bold");
   if (is_brake_active)
     redDrawText(p, rect().center().x(), 210, speed); // turn speed red when brake is active
-    configFont(p, "Open Sans", 66, "Regular");
-    redDrawText(p, rect().center().x(), 290, speedUnit, 200);
   else
     drawText(p, rect().center().x(), 210, speed);
   configFont(p, "Open Sans", 66, "Regular");
