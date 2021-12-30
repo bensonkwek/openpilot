@@ -332,7 +332,9 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
   // current speed
   configFont(p, "Open Sans", 176, "Bold");
   if (is_brake_active)
-    myDrawText(p, rect().center().x(), 210, speed); // turn speed red when brake is active
+    redDrawText(p, rect().center().x(), 210, speed); // turn speed red when brake is active
+    configFont(p, "Open Sans", 66, "Regular");
+    redDrawText(p, rect().center().x(), 290, speedUnit, 200);
   else
     drawText(p, rect().center().x(), 210, speed);
   configFont(p, "Open Sans", 66, "Regular");
@@ -361,7 +363,7 @@ void OnroadHud::drawText(QPainter &p, int x, int y, const QString &text, int alp
   p.drawText(real_rect.x(), real_rect.bottom(), text);
 }
 
-void OnroadHud::myDrawText(QPainter &p, int x, int y, const QString &text, int alpha) {
+void OnroadHud::redDrawText(QPainter &p, int x, int y, const QString &text, int alpha) {
   QFontMetrics fm(p.font());
   QRect init_rect = fm.boundingRect(text);
   QRect real_rect = fm.boundingRect(init_rect, 0, text);
