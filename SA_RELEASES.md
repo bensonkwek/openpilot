@@ -1,5 +1,7 @@
 Stock Additions 0.8.13
 ===
+## - 2021-12-28, 3:00am MST Notes
+ * Use correct path offset for comma three, may reduce slight left hugging
 ## - 2021-12-27
 * Now every touch changes the speed of 5/5kph or mph, you can disable in./op_edit.py
 ## - 2021-12-24, 3:23am MST Notes
