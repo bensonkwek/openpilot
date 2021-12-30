@@ -6,6 +6,7 @@ Built on top of Shane's Stock Additions, with additional customizations to inter
 
 * Replaced comma logo with flag of Singapore
 * Increased loudness
+* Speed display turns red on brake
 
 ## Tools
 [oh-my-comma](https://github.com/emu-sh/.oh-my-comma)
