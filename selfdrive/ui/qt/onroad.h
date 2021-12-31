@@ -41,6 +41,7 @@ class OnroadHud : public QWidget {
   Q_PROPERTY(QString speedUnit MEMBER speedUnit NOTIFY valueChanged);
   Q_PROPERTY(QString maxSpeed MEMBER maxSpeed NOTIFY valueChanged);
   Q_PROPERTY(bool is_cruise_set MEMBER is_cruise_set NOTIFY valueChanged);
+  Q_PROPERTY(bool is_brake_active MEMBER is_brake_active NOTIFY valueChanged);
   Q_PROPERTY(bool engageable MEMBER engageable NOTIFY valueChanged);
   Q_PROPERTY(bool dmActive MEMBER dmActive NOTIFY valueChanged);
   Q_PROPERTY(bool hideDM MEMBER hideDM NOTIFY valueChanged);
@@ -53,6 +54,7 @@ public:
 private:
   void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity);
   void drawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
+  void redDrawText(QPainter &p, int x, int y, const QString &text, int alpha = 255);
   void paintEvent(QPaintEvent *event) override;
 
   QPixmap engage_img;
@@ -63,6 +65,7 @@ private:
   QString speedUnit;
   QString maxSpeed;
   bool is_cruise_set = false;
+  bool is_brake_active = false;
   bool engageable = false;
   bool dmActive = false;
   bool hideDM = false;
