@@ -10,6 +10,8 @@ from selfdrive.swaglog import cloudlog
 TESTED_BRANCHES = ['devel', 'release2-staging', 'release3-staging', 'dashcam-staging', 'release2', 'release3', 'dashcam']
 FORK_BRANCHES = ['stock_additions', 'SA-master']  # tested SA branches
 FORK_BRANCHES += [f'{prefix}_{brnch}' for brnch in FORK_BRANCHES for prefix in ['shanesmiskol', 'sshane']]  # usernames
+BK_BRANCHES = ['BK-master'] # bensonkwek master branch
+BK_BRANCHES += [f'{prefix}_{brnch}' for brnch in BK_BRANCHES for prefix in ['bensonkwek']  # usernames
 
 training_version: bytes = b"0.2.0"
 terms_version: bytes = b"2"
@@ -83,6 +85,13 @@ def is_fork_remote() -> bool:
 
   return origin.startswith('git@github.com:sshane') or origin.startswith('https://github.com/sshane')
 
+@cache
+def get_bk_remote() -> bool:
+  origin = get_origin()
+  if origin is None:
+    return False
+
+  return origin.startswith('git@github.com:bensonkwek') or origin.startswith('https://github.com/bensonkwek')
 
 @cache
 def is_tested_branch() -> bool:
@@ -91,6 +100,10 @@ def is_tested_branch() -> bool:
 @cache
 def is_fork_tested_branch() -> bool:
   return get_short_branch() in FORK_BRANCHES
+
+@cache
+def get_bk_remote() -> bool:
+  return get_short_branch() in BK_BRANCHES
 
 
 # By default, this behaves as comma intends
