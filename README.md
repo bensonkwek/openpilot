@@ -1,6 +1,5 @@
 # Benson's customized fork for personal preferences.
 * Car: 2021 Toyota RAV4 Hybrid
-
 ## Introduction
 Built on top of Shane's Stock Additions, with additional customizations to interfaces.
 
