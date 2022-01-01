@@ -391,7 +391,7 @@ def main():
   auto_reboot = AutoReboot()
   params = Params()
 
-  if params.get_bool("DisableUpdates"):
+  if params.get_bool("DisableUpdates") or True:  # KRKeegan disable updates
     cloudlog.warning("updates are disabled by the DisableUpdates param")
     exit(0)
 
