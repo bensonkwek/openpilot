@@ -70,7 +70,7 @@ void Sidebar::updateState(const UIState &s) {
   } else if (ts == cereal::DeviceState::ThermalStatus::YELLOW) {
     tempColor = warning_color;
   }
-  setProperty("tempStatus", QVariant::fromValue(ItemStatus{QString("TEMP\n%1°C").arg((int)deviceState.getAmbientTempC()), tempColor}));
+  setProperty("tempStatus", QVariant::fromValue(ItemStatus{QString("TEMP\n%1C").arg((int)deviceState.getAmbientTempC()), tempColor}));
 
   ItemStatus pandaStatus = {"VEHICLE\nONLINE", good_color};
   if (s.scene.pandaType == cereal::PandaState::PandaType::UNKNOWN) {
