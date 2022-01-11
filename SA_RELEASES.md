@@ -1,5 +1,13 @@
 Stock Additions 0.8.13
 ===
+## - 2022-01-03
+ * Revert "follow longitudinal plan earlier" change as it had some minor bugs. Re-do in progress
+## - 2022-01-01
+ * Improve lateral performance by interpolating lateral plan to 100hz (from 20hz)
+## - 2021-12-31, 5:00pm MST Notes
+ * A few controls improvements related to right after engaging:
+   * Car no longer brakes for a second after engaging at low speeds if there's no lead
+   * Follows plan sooner: After you take your foot off the gas pedal to accelerate while engaged, the car now brakes much earlier. Previously the car would continue to accelerate for a second even if we're above the set speed or close to a car.
 ## - 2021-12-28, 3:00am MST Notes
  * Use correct path offset for comma three, may reduce slight left hugging
 ## - 2021-12-27

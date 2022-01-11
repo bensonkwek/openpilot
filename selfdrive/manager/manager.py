@@ -5,6 +5,7 @@ import signal
 import subprocess
 import sys
 import traceback
+from typing import List, Tuple, Union
 
 import cereal.messaging as messaging
 import selfdrive.crash as crash
@@ -25,7 +26,7 @@ from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get
 sys.path.append(os.path.join(BASEDIR, "pyextra"))
 
 
-def manager_init():
+def manager_init() -> None:
   # update system time from panda
   set_time(cloudlog)
 
@@ -35,7 +36,7 @@ def manager_init():
   params = Params()
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
 
-  default_params = [
+  default_params: List[Tuple[str, Union[str, bytes]]] = [
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),
     ("OpenpilotEnabledToggle", "1"),
@@ -56,7 +57,7 @@ def manager_init():
 
   # is this dashcam?
   if os.getenv("PASSIVE") is not None:
-    params.put_bool("Passive", bool(int(os.getenv("PASSIVE"))))
+    params.put_bool("Passive", bool(int(os.getenv("PASSIVE", "0"))))
 
   if params.get("Passive") is None:
     raise Exception("Passive must be set to continue")
@@ -100,12 +101,12 @@ def manager_init():
                    device=HARDWARE.get_device_type())
 
 
-def manager_prepare():
+def manager_prepare() -> None:
   for p in managed_processes.values():
     p.prepare()
 
 
-def manager_cleanup():
+def manager_cleanup() -> None:
   # send signals to kill all procs
   for p in managed_processes.values():
     p.stop(block=False)
@@ -117,7 +118,7 @@ def manager_cleanup():
   cloudlog.info("everything is dead")
 
 
-def manager_thread():
+def manager_thread() -> None:
   cloudlog.bind(daemon="manager")
   cloudlog.info("manager start")
   cloudlog.info({"environ": os.environ})
@@ -129,13 +130,12 @@ def manager_thread():
     ignore += ["manage_athenad", "uploader"]
   if os.getenv("NOBOARD") is not None:
     ignore.append("pandad")
-  if os.getenv("BLOCK") is not None:
-    ignore += os.getenv("BLOCK").split(",")
+  ignore += [x for x in os.getenv("BLOCK", "").split(",") if len(x) > 0]
 
   ensure_running(managed_processes.values(), started=False, not_run=ignore)
 
   started_prev = False
-  sm = messaging.SubMaster(['deviceState'])
+  sm = messaging.SubMaster(['deviceState', 'sentryState'])
   pm = messaging.PubMaster(['managerState'])
 
   while True:
@@ -145,9 +145,9 @@ def manager_thread():
     if sm['deviceState'].freeSpacePercent < 5:
       not_run.append("loggerd")
 
-    started = sm['deviceState'].started
+    started = sm['deviceState'].started or sm['sentryState'].started
     driverview = params.get_bool("IsDriverViewEnabled")
-    ensure_running(managed_processes.values(), started, driverview, not_run)
+    ensure_running(managed_processes.values(), started, driverview, sm['sentryState'].started, not_run)
 
     # trigger an update after going offroad
     if started_prev and not started and 'updated' in managed_processes:
@@ -177,7 +177,7 @@ def manager_thread():
       break
 
 
-def main():
+def main() -> None:
   prepare_only = os.getenv("PREPAREONLY") is not None
 
   manager_init()

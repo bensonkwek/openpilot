@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QTimer>
 #include <QColor>
+#include <QFuture>
 #include <QTransform>
 
 #include "cereal/messaging/messaging.h"
@@ -25,50 +26,6 @@ typedef cereal::CarControl::HUDControl::AudibleAlert AudibleAlert;
 // TODO: choose based on frame input size
 const float y_offset = Hardware::EON() ? 0.0 : 150.0;
 const float ZOOM = Hardware::EON() ? 2138.5 : 2912.8;
-
-struct Alert {
-  QString text1;
-  QString text2;
-  QString type;
-  cereal::ControlsState::AlertSize size;
-  AudibleAlert sound;
-
-  bool equal(const Alert &a2) {
-    return text1 == a2.text1 && text2 == a2.text2 && type == a2.type && sound == a2.sound;
-  }
-
-  static Alert get(const SubMaster &sm, uint64_t started_frame) {
-    const cereal::ControlsState::Reader &cs = sm["controlsState"].getControlsState();
-    if (sm.updated("controlsState")) {
-      return {cs.getAlertText1().cStr(), cs.getAlertText2().cStr(),
-              cs.getAlertType().cStr(), cs.getAlertSize(),
-              cs.getAlertSound()};
-    } else if ((sm.frame - started_frame) > 5 * UI_FREQ) {
-      const int CONTROLS_TIMEOUT = 5;
-      const int controls_missing = (nanos_since_boot() - sm.rcv_time("controlsState")) / 1e9;
-
-      // Handle controls timeout
-      if (sm.rcv_frame("controlsState") < started_frame) {
-        // car is started, but controlsState hasn't been seen at all
-        return {"openpilot Unavailable", "Waiting for controls to start",
-                "controlsWaiting", cereal::ControlsState::AlertSize::MID,
-                AudibleAlert::NONE};
-      } else if (controls_missing > CONTROLS_TIMEOUT) {
-        // car is started, but controls is lagging or died
-        if (cs.getEnabled() && (controls_missing - CONTROLS_TIMEOUT) < 10) {
-          return {"TAKE CONTROL IMMEDIATELY", "Controls Unresponsive",
-                  "controlsUnresponsive", cereal::ControlsState::AlertSize::FULL,
-                  AudibleAlert::WARNING_IMMEDIATE};
-        } else {
-          return {"Controls Unresponsive", "Reboot Device",
-                  "controlsUnresponsivePermanent", cereal::ControlsState::AlertSize::MID,
-                  AudibleAlert::NONE};
-        }
-      }
-    }
-    return {};
-  }
-};
 
 typedef enum UIStatus {
   STATUS_DISENGAGED,
@@ -104,7 +61,7 @@ typedef struct UIScene {
   QPointF lead_vertices[2];
 
   float light_sensor, accel_sensor, gyro_sensor;
-  bool started, ignition, is_metric, longitudinal_control, end_to_end;
+  bool started_sentry, started, ignition, is_metric, longitudinal_control, end_to_end;
   uint64_t started_frame;
 
   // SA button statuses
@@ -118,6 +75,7 @@ class UIState : public QObject {
 
 public:
   UIState(QObject* parent = 0);
+  void updateStatus();
   inline bool worldObjectsVisible() const {
     return sm->rcv_frame("liveCalibration") > scene.started_frame;
   };
@@ -152,6 +110,54 @@ private:
 
 UIState *uiState();
 
+struct Alert {
+  QString text1;
+  QString text2;
+  QString type;
+  cereal::ControlsState::AlertSize size;
+  AudibleAlert sound;
+
+  bool equal(const Alert &a2) {
+    return text1 == a2.text1 && text2 == a2.text2 && type == a2.type && sound == a2.sound;
+  }
+
+  static Alert get(const SubMaster &sm, uint64_t started_frame, bool started_sentry) {
+    const cereal::ControlsState::Reader &cs = sm["controlsState"].getControlsState();
+    if (sm.updated("controlsState")) {
+      return {cs.getAlertText1().cStr(), cs.getAlertText2().cStr(),
+              cs.getAlertType().cStr(), cs.getAlertSize(),
+              cs.getAlertSound()};
+    } else if ((sm.frame - started_frame) > 5 * UI_FREQ) {
+      const int CONTROLS_TIMEOUT = 5;
+      const int controls_missing = (nanos_since_boot() - sm.rcv_time("controlsState")) / 1e9;
+
+      // Handle controls timeout
+      if (started_sentry) {
+        return {"SENTRY MODE", "RECORDING 360° VIDEO",
+                "controlsUnresponsive", cereal::ControlsState::AlertSize::FULL,
+                AudibleAlert::WARNING_IMMEDIATE};
+      } else if (sm.rcv_frame("controlsState") < started_frame) {
+        // car is started, but controlsState hasn't been seen at all
+        return {"openpilot Unavailable", "Waiting for controls to start",
+                "controlsWaiting", cereal::ControlsState::AlertSize::MID,
+                AudibleAlert::NONE};
+      } else if (controls_missing > CONTROLS_TIMEOUT) {
+        // car is started, but controls is lagging or died
+        if (cs.getEnabled() && (controls_missing - CONTROLS_TIMEOUT) < 10) {
+          return {"TAKE CONTROL IMMEDIATELY", "Controls Unresponsive",
+                  "controlsUnresponsive", cereal::ControlsState::AlertSize::FULL,
+                  AudibleAlert::WARNING_IMMEDIATE};
+        } else {
+          return {"Controls Unresponsive", "Reboot Device",
+                  "controlsUnresponsivePermanent", cereal::ControlsState::AlertSize::MID,
+                  AudibleAlert::NONE};
+        }
+      }
+    }
+    return {};
+  }
+};
+
 // device management class
 
 class Device : public QObject {
@@ -169,6 +175,7 @@ private:
   bool ignition_on = false;
   int last_brightness = 0;
   FirstOrderFilter brightness_filter;
+  QFuture<void> brightness_future;
 
   void updateBrightness(const UIState &s);
   void updateWakefulness(const UIState &s);
