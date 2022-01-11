@@ -34,7 +34,7 @@ from selfdrive.version import get_version, get_origin, get_short_branch, get_com
 
 ATHENA_HOST = os.getenv('ATHENA_HOST', 'wss://athena.comma.ai')
 HANDLER_THREADS = int(os.getenv('HANDLER_THREADS', "4"))
-LOCAL_PORT_WHITELIST = set([8022])
+LOCAL_PORT_WHITELIST = {8022}
 
 LOG_ATTR_NAME = 'user.upload'
 LOG_ATTR_VALUE_MAX_UNIX_TIME = int.to_bytes(2147483647, 4, sys.byteorder)
@@ -263,20 +263,35 @@ def reboot():
 
 @dispatcher.add_method
 def uploadFileToUrl(fn, url, headers):
-  if len(fn) == 0 or fn[0] == '/' or '..' in fn:
-    return 500
-  path = os.path.join(ROOT, fn)
-  if not os.path.exists(path):
-    return 404
+  return uploadFilesToUrls([[fn, url, headers]])
 
-  item = UploadItem(path=path, url=url, headers=headers, created_at=int(time.time() * 1000), id=None)
-  upload_id = hashlib.sha1(str(item).encode()).hexdigest()
-  item = item._replace(id=upload_id)
 
-  upload_queue.put_nowait(item)
+@dispatcher.add_method
+def uploadFilesToUrls(files_data):
+  items = []
+  failed = []
+  for fn, url, headers in files_data:
+    if len(fn) == 0 or fn[0] == '/' or '..' in fn:
+      failed.append(fn)
+      continue
+    path = os.path.join(ROOT, fn)
+    if not os.path.exists(path):
+      failed.append(fn)
+      continue
+
+    item = UploadItem(path=path, url=url, headers=headers, created_at=int(time.time() * 1000), id=None)
+    upload_id = hashlib.sha1(str(item).encode()).hexdigest()
+    item = item._replace(id=upload_id)
+    upload_queue.put_nowait(item)
+    items.append(item._asdict())
+
   UploadQueueCache.cache(upload_queue)
 
-  return {"enqueued": 1, "item": item._asdict()}
+  resp = {"enqueued": len(items), "items": items}
+  if failed:
+    resp["failed"] = failed
+
+  return resp
 
 
 @dispatcher.add_method
@@ -287,11 +302,15 @@ def listUploadQueue():
 
 @dispatcher.add_method
 def cancelUpload(upload_id):
-  upload_ids = set(item.id for item in list(upload_queue.queue))
-  if upload_id not in upload_ids:
+  if not isinstance(upload_id, list):
+    upload_id = [upload_id]
+
+  uploading_ids = {item.id for item in list(upload_queue.queue)}
+  cancelled_ids = uploading_ids.intersection(upload_id)
+  if len(cancelled_ids) == 0:
     return 404
 
-  cancelled_uploads.add(upload_id)
+  cancelled_uploads.update(cancelled_ids)
   return {"success": 1}
 
 
@@ -338,7 +357,7 @@ def getPublicKey():
   if not os.path.isfile(PERSIST + '/comma/id_rsa.pub'):
     return None
 
-  with open(PERSIST + '/comma/id_rsa.pub', 'r') as f:
+  with open(PERSIST + '/comma/id_rsa.pub') as f:
     return f.read()
 
 
@@ -419,7 +438,7 @@ def log_handler(end_event):
           curr_time = int(time.time())
           log_path = os.path.join(SWAGLOG_DIR, log_entry)
           setxattr(log_path, LOG_ATTR_NAME, int.to_bytes(curr_time, 4, sys.byteorder))
-          with open(log_path, "r") as f:
+          with open(log_path) as f:
             jsonrpc = {
               "method": "forwardLogs",
               "params": {

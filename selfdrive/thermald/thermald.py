@@ -3,7 +3,7 @@ import datetime
 import os
 import time
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, NoReturn, Optional, Tuple
 from collections import namedtuple, OrderedDict
 
 import psutil
@@ -81,7 +81,7 @@ def set_eon_fan(val):
     try:
       i = [0x1, 0x3 | 0, 0x3 | 0x08, 0x3 | 0x10][val]
       bus.write_i2c_block_data(0x3d, 0, [i])
-    except IOError:
+    except OSError:
       # tusb320
       if val == 0:
         bus.write_i2c_block_data(0x67, 0xa, [0])
@@ -152,7 +152,10 @@ def set_offroad_alert_if_changed(offroad_alert: str, show_alert: bool, extra_tex
   set_offroad_alert(offroad_alert, show_alert, extra_text)
 
 
-def thermald_thread():
+
+
+
+def thermald_thread() -> NoReturn:
 
   pm = messaging.PubMaster(['deviceState'])
 
@@ -163,11 +166,11 @@ def thermald_thread():
   fan_speed = 0
   count = 0
 
-  onroad_conditions = {
+  onroad_conditions: Dict[str, bool] = {
     "ignition": False,
   }
-  startup_conditions = {}
-  startup_conditions_prev = {}
+  startup_conditions: Dict[str, bool] = {}
+  startup_conditions_prev: Dict[str, bool] = {}
 
   off_ts = None
   started_ts = None
@@ -227,6 +230,7 @@ def thermald_thread():
       else:
         no_panda_cnt = 0
         onroad_conditions["ignition"] = pandaState.ignitionLine or pandaState.ignitionCan
+        onroad_conditions["sentry"] = False  # some logic to use accelerometer sensors
 
       in_car = pandaState.harnessStatus != log.PandaState.HarnessStatus.notConnected
       usb_power = peripheralState.usbPowerMode != log.PeripheralState.UsbPowerMode.client
@@ -395,6 +399,7 @@ def thermald_thread():
     msg.deviceState.chargingError = current_filter.x > 0. and msg.deviceState.batteryPercent < 90  # if current is positive, then battery is being discharged
     msg.deviceState.started = started_ts is not None
     msg.deviceState.startedMonoTime = int(1e9*(started_ts or 0))
+    msg.deviceState.offMonoTime = int(1e9*(off_ts or 0))
 
     last_ping = params.get("LastAthenaPingTime")
     if last_ping is not None:
@@ -424,7 +429,7 @@ def thermald_thread():
     count += 1
 
 
-def main():
+def main() -> NoReturn:
   thermald_thread()
 
 
