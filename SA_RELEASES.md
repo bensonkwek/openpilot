@@ -10,6 +10,8 @@ Stock Additions 0.8.13
    * Follows plan sooner: After you take your foot off the gas pedal to accelerate while engaged, the car now brakes much earlier. Previously the car would continue to accelerate for a second even if we're above the set speed or close to a car.
 ## - 2021-12-28, 3:00am MST Notes
  * Use correct path offset for comma three, may reduce slight left hugging
+## - 2021-12-27
+* Now every touch changes the speed of 5/5kph or mph, you can disable in./op_edit.py
 ## - 2021-12-24, 3:23am MST Notes
  * Initialize controls immediately to send required ACC messages to resolve some Toyota cruise faults
 ## - 2021-12-21, 2:46am MST Notes
