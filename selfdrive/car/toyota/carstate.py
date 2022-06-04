@@ -30,7 +30,7 @@ class CarState(CarStateBase):
 
     # Toyota 5/5 Speed Increments
     params = Params()
-    self.allow_raw_upload = params.get_bool("SpeedIncrement")
+    self._5in5_Speeds_Increments = params.get_bool("SpeedIncrement")
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
