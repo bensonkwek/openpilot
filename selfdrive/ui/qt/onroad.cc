@@ -61,23 +61,10 @@ void OnroadWindow::updateState(const UIState &s) {
   }
 }
 
-// Uses larger rect to check for presses for the purpose of ignoring input and not loading nav view
-bool ptInBiggerRect(Rect const & r, QMouseEvent* e){
-  Rect br = {r.x - r.w / 5, r.y - r.h / 5, 7 * r.w / 5, 7 * r.h / 5};
-  return br.ptInRect(e->x(), e->y());
-}
-
 void OnroadWindow::mousePressEvent(QMouseEvent* e) {
   if (map != nullptr) {
     bool sidebarVisible = geometry().x() > 0;
-    if (!sidebarVisible){
-      // prevent nav from showing if a tappable ui element has been tapped
-      bool ignorePress = false;
-      ignorePress = ignorePress || ptInBiggerRect(uiState()->scene.screen_dim_touch_rect, e);
-      if (!ignorePress){
-        map->setVisible(!map->isVisible());
-      }
-    }
+    map->setVisible(!sidebarVisible && !map->isVisible());
   }
   // propagation event to parent(HomeWindow)
   QWidget::mousePressEvent(e);
