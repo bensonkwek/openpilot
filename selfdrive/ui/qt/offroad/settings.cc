@@ -19,6 +19,7 @@
 #include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 #include "selfdrive/ui/qt/widgets/ssh_keys.h"
+include "selfdrive/ui/qt/widgets/benpilot.h"
 #include "selfdrive/ui/qt/widgets/toggle.h"
 #include "selfdrive/ui/ui.h"
 #include "selfdrive/ui/qt/util.h"
@@ -306,6 +307,17 @@ void SettingsWindow::showEvent(QShowEvent *event) {
   nav_btns->buttons()[0]->setChecked(true);
 }
 
+FeaturePanel::FeaturePanel(QWidget* parent) : QWidget(parent) {
+  QVBoxLayout *layout = new QVBoxLayout(this);
+
+  layout->setContentsMargins(50, 0, 50, 0);
+  layout->setSpacing(30);
+
+  layout->addWidget(new OnroadScreenOff());
+  layout->addWidget(new OnroadScreenOffBrightness());
+  layout->addWidget(new BrightnessControl());
+}
+
 SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   // setup two main layouts
@@ -349,6 +361,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     {"Network", network_panel(this)},
     {"Toggles", new TogglesPanel(this)},
     {"Software", new SoftwarePanel(this)},
+    {"Features", new FeaturePanel(this)},
   };
 
 #ifdef ENABLE_MAPS
